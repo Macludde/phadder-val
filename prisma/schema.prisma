@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Applicant {
+  id          Int      @id @default(autoincrement())
+  appliedAt   DateTime
+  name        String
+  email       String
+  year        Int
+  phoneNumber String?
+
+  ApplicantPosition ApplicantPosition[]
+  preferredMissions Mission[]
+  cantInterview     TimeRange[]
+  interview         Interview?          @relation(fields: [interviewId], references: [id])
+  interviewId       Int?
+
+  otherInfo             String?
+  applicantOrderReason  String?
+  cantInterviewReason   String?
+  cantInterviewFinished Boolean?
+
+  hasSentExtraFormMail Boolean @default(false)
+  hasAnsweredExtraForm Boolean @default(false)
+}
+
+model ApplicantPosition {
+  position    Position
+  applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  applicantId Int
+  order       Int?
+
+  @@id([position, applicantId])
+}
+
+model TimeRange {
+  id        Int      @id @default(autoincrement())
+  startTime DateTime
+  endTime   DateTime
+
+  Applicant       Applicant?   @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  applicantId     Int?
+  Interviewer     Interviewer? @relation(fields: [interviewerName], references: [name])
+  interviewerName String?
+}
+
+model Interviewer {
+  name                String          @id
+  role                InterviewerRole
+  electionFamiliarity Int // 1-3, 1 is never held an election before, 2 is has held some election before, 3 is very familiar
+  interviews          Interview[]
+  cantInterview       TimeRange[]
+}
+
+enum InterviewerRole {
+  Stab
+  Opepp
+  Pepp
+}
+
+enum Position {
+  Group
+  Mission
+  Study
+  Head
+  InternationalGroup
+  InternationalHead
+  InternationalMission
+}
+
+enum Mission {
+  Cheer
+  Ladbil
+  Ballongistapult
+  Regatta
+  Nollespex
+  Showdown
+  Flying
+  Waterloo
+  Oph
+  New
+}
+
+model Interview {
+  id           Int           @id @default(autoincrement())
+  startTime    DateTime
+  endTime      DateTime
+  applicants   Applicant[] // max 3
+  interviewers Interviewer[] // 3
+}
