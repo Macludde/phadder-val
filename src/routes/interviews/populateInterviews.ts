@@ -31,12 +31,12 @@ export const populateOneInterview = async (startAt?: Date) => {
             OR: [
               {
                 endTime: {
-                  lt: freeInterview?.startTime,
+                  lt: freeInterview?.startTime, // could be lte, but give people margin to go to interview
                 },
               },
               {
                 startTime: {
-                  gt: freeInterview?.endTime,
+                  gt: freeInterview?.endTime, // could be gte
                 },
               },
             ],
@@ -66,7 +66,7 @@ export const populateOneInterview = async (startAt?: Date) => {
     }
     if (!best) {
       return null;
-    } else if (bestScore < -100) {
+    } else if (bestScore < -1000) {
       return null;
     }
     return best;
@@ -99,6 +99,84 @@ export const populateOneInterview = async (startAt?: Date) => {
     },
     data: {
       interviewId: freeInterview?.id,
+    },
+  });
+  return true;
+};
+
+export const populateOnePerson = async (bannedApplicants?: number[]) => {
+  const applicant = await prismaClient.applicant.findFirst({
+    where: {
+      id: bannedApplicants
+        ? {
+            notIn: bannedApplicants,
+          }
+        : undefined,
+      interviewId: null,
+      OR: [{ cantInterviewReason: null }, { cantInterviewFinished: true }],
+    },
+    include: {
+      ApplicantPosition: true,
+      cantInterview: true,
+    },
+  });
+  if (!applicant) {
+    return false;
+  }
+  const possibleInterviews = await prismaClient.interview.findMany({
+    where: {
+      AND: applicant.cantInterview.map((cant) => ({
+        OR: [
+          {
+            endTime: {
+              lt: cant.startTime, // gte should work, but might as well give people some leeway
+            },
+          },
+          {
+            startTime: {
+              gt: cant.endTime, // gte should work, but might as well give people some leeway
+            },
+          },
+        ],
+      })),
+    },
+    include: {
+      applicants: {
+        include: {
+          ApplicantPosition: true,
+        },
+      },
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+  });
+  const freeIntervies = possibleInterviews.filter(
+    (interview) => interview.applicants.length < 3,
+  );
+  if (freeIntervies.length === 0) {
+    return applicant.id; // couldn't find a free interview, do manually and ban applicant for now
+  }
+  let best = null;
+  let bestScore = -1;
+  for (const interview of freeIntervies) {
+    const score = similarityWithAll(applicant, interview.applicants);
+    if (score > bestScore) {
+      bestScore = score;
+      best = interview;
+    }
+  }
+  if (!best) {
+    return applicant.id;
+  } else if (bestScore < -100) {
+    return applicant.id;
+  }
+  await prismaClient.applicant.update({
+    where: {
+      id: applicant.id,
+    },
+    data: {
+      interviewId: best.id,
     },
   });
   return true;

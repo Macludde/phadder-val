@@ -2,9 +2,28 @@ import { prismaClient } from "@/index";
 import { Mission, Position } from "@prisma/client";
 
 export const load = async () => {
-  const fullCount = await prismaClient.applicant.count();
+  const fullCount = await prismaClient.applicant.count({
+    where: {
+      hasSentExtraFormMail: false,
+      ApplicantPosition: {
+        some: {
+          position: {
+            in: [
+              Position.Mission,
+              Position.InternationalMission,
+              Position.Group,
+              Position.Head,
+              Position.InternationalGroup,
+              Position.InternationalHead,
+            ],
+          },
+        },
+      },
+    },
+  });
   const nonMission = await prismaClient.applicant.findMany({
     where: {
+      hasSentExtraFormMail: false,
       AND: [
         {
           ApplicantPosition: {
@@ -34,6 +53,7 @@ export const load = async () => {
   });
   const missionCount = await prismaClient.applicant.count({
     where: {
+      hasSentExtraFormMail: false,
       ApplicantPosition: {
         some: {
           OR: [
@@ -50,6 +70,7 @@ export const load = async () => {
   });
   const missionNonSpex = await prismaClient.applicant.findMany({
     where: {
+      hasSentExtraFormMail: false,
       ApplicantPosition: {
         some: {
           OR: [
@@ -71,6 +92,7 @@ export const load = async () => {
   });
   const missionAndSpex = await prismaClient.applicant.findMany({
     where: {
+      hasSentExtraFormMail: false,
       ApplicantPosition: {
         some: {
           OR: [

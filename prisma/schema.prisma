@@ -24,8 +24,10 @@ model Applicant {
   ApplicantPosition ApplicantPosition[]
   preferredMissions Mission[]
   cantInterview     TimeRange[]
-  interview         Interview?          @relation(fields: [interviewId], references: [id])
-  interviewId       Int?
+
+  interview       Interview? @relation(fields: [interviewId], references: [id])
+  interviewId     Int?
+  interviewLocked Boolean    @default(false)
 
   otherInfo             String?
   applicantOrderReason  String?
@@ -34,6 +36,14 @@ model Applicant {
 
   hasSentExtraFormMail Boolean @default(false)
   hasAnsweredExtraForm Boolean @default(false)
+
+  peopleWhoFriendMe1 Applicant[] @relation("friend1")
+  peopleWhoFriendMe2 Applicant[] @relation("friend2")
+
+  friend1   Applicant? @relation("friend1", fields: [friend1Id], references: [id])
+  friend1Id Int?
+  friend2   Applicant? @relation("friend2", fields: [friend2Id], references: [id])
+  friend2Id Int?
 }
 
 model ApplicantPosition {
@@ -49,6 +59,7 @@ model TimeRange {
   id        Int      @id @default(autoincrement())
   startTime DateTime
   endTime   DateTime
+  isTemp    Boolean  @default(false)
 
   Applicant       Applicant?   @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   applicantId     Int?

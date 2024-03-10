@@ -1,6 +1,6 @@
 import { prismaClient } from "$lib";
 import type { Actions } from "./$types";
-import { populateOneInterview } from "./populateInterviews";
+import { populateOneInterview, populateOnePerson } from "./populateInterviews";
 
 export const load = async () => {
   const interviews = await prismaClient.interview.findMany({
@@ -65,9 +65,51 @@ export const actions: Actions = {
   },
   clear: async () => {
     await prismaClient.applicant.updateMany({
+      where: {
+        interviewLocked: false,
+      },
       data: {
         interviewId: null,
       },
+    });
+  },
+  removePersonFromInterview: async ({ request }) => {
+    const data = await request.formData();
+    await prismaClient.$transaction(async (prisma) => {
+      const interview = await prisma.interview.findFirst({
+        where: {
+          applicants: {
+            some: {
+              id: parseInt(data.get("id") as string),
+            },
+          },
+        },
+      });
+      if (!interview) {
+        throw new Error("Interview not found");
+      }
+      await prisma.applicant.update({
+        where: {
+          id: parseInt(data.get("id") as string),
+        },
+        data: {
+          cantInterview: {
+            create: {
+              isTemp: true,
+              startTime: interview.startTime,
+              endTime: interview.endTime,
+            },
+          },
+        },
+      });
+      await prisma.applicant.update({
+        where: {
+          id: parseInt(data.get("id") as string),
+        },
+        data: {
+          interviewId: null,
+        },
+      });
     });
   },
   populate: async () => {
@@ -82,6 +124,21 @@ export const actions: Actions = {
         }
       } else {
         startAt = res;
+      }
+    }
+  },
+  populatePeople: async () => {
+    let done = false;
+    let banned: number[] = [];
+    while (!done) {
+      const res = await populateOnePerson(banned);
+      if (typeof res === "boolean") {
+        if (res === false) {
+          done = true;
+          break;
+        }
+      } else {
+        banned.push(res);
       }
     }
   },

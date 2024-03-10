@@ -36,7 +36,7 @@
       variant="outline"
       role="combobox"
       aria-expanded={open}
-      class="w-[200px] justify-between"
+      class="w-[200px] justify-between flex-1"
     >
       {selectedValue}
       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -44,14 +44,15 @@
   </Popover.Trigger>
   <Popover.Content class="w-[200px] p-0">
     <Command.Root>
-      <Command.Input placeholder="Search framework..." />
-      <Command.Empty>No framework found.</Command.Empty>
+      <Command.Input placeholder="Search..." />
+      <Command.Empty>Not found.</Command.Empty>
       <Command.Group>
         {#each options as option}
           <Command.Item
-            value={option.value}
+            value={option.label}
             onSelect={(currentValue) => {
-              value = currentValue;
+              value =
+                options.find((f) => f.label === currentValue)?.value ?? "";
               closeAndFocusTrigger(ids.trigger);
             }}
           >

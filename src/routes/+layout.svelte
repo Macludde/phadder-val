@@ -10,6 +10,7 @@
     <a href="/order" class="underline hover:no-underline">Order</a>
     <a href="/cantinterview" class="underline hover:no-underline">Kan inte</a>
     <a href="/mails" class="underline hover:no-underline">Mail</a>
+    <a href="/friends" class="underline hover:no-underline">Vänner</a>
   </nav>
   <slot />
 </main>

@@ -38,25 +38,40 @@ export const similarity = (
     score -= 10000; // should not match at all
   }
 
+  // asked each other
+  if (
+    a.friend1Id === b.id ||
+    a.friend2Id === b.id ||
+    a.id === b.friend1Id ||
+    a.id === b.friend2Id
+  ) {
+    return -500; // very bad
+  }
+
   // position similarity (-30 -> 26)
   let positionScore = 0;
   const aPos = a.ApplicantPosition.map((p) => p.position);
   const bPos = b.ApplicantPosition.map((p) => p.position);
   if (includesGroupQuestions(aPos) && includesGroupQuestions(bPos))
     positionScore += 10;
-  if (includesMissionQuestions(aPos) && includesMissionQuestions(bPos))
-    positionScore += 12;
+  else if (includesMissionQuestions(aPos) && includesMissionQuestions(bPos))
+    positionScore += 10;
   if (
     includesInternationalQuestions(aPos) &&
     includesInternationalQuestions(bPos)
   )
-    positionScore -= 30;
+    positionScore += 5;
   if (aPos.includes(Position.Study) && bPos.includes(Position.Study)) {
     if (aPos.length === 1 && bPos.length === 1)
       return 100000; // only study
     else if (aPos.length === 1 || bPos.length === 1)
       return -10000; // should not match at all
     else positionScore += 4;
+  } else if (
+    (aPos.includes(Position.Study) || bPos.includes(Position.Study)) &&
+    (aPos.length === 1 || bPos.length === 1)
+  ) {
+    return -10000; // should not match at all
   }
   score += positionScore;
   return score;
