@@ -125,6 +125,9 @@ export const populateOnePerson = async (bannedApplicants?: number[]) => {
   }
   const possibleInterviews = await prismaClient.interview.findMany({
     where: {
+      startTime: {
+        gt: new Date(),
+      },
       AND: applicant.cantInterview.map((cant) => ({
         OR: [
           {

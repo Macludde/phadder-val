@@ -48,7 +48,7 @@ export const similarity = (
     return -500; // very bad
   }
 
-  // position similarity (-30 -> 26)
+  // position similarity (-30 -> +26)
   let positionScore = 0;
   const aPos = a.ApplicantPosition.map((p) => p.position);
   const bPos = b.ApplicantPosition.map((p) => p.position);
@@ -68,8 +68,8 @@ export const similarity = (
       return -10000; // should not match at all
     else positionScore += 4;
   } else if (
-    (aPos.includes(Position.Study) || bPos.includes(Position.Study)) &&
-    (aPos.length === 1 || bPos.length === 1)
+    (aPos.includes(Position.Study) && aPos.length === 1) ||
+    (bPos.length === 1 && bPos.includes(Position.Study))
   ) {
     return -10000; // should not match at all
   }

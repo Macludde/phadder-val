@@ -47,4 +47,7 @@
   <form action="?/seed" method="post">
     <Button type="submit">Seed data</Button>
   </form>
+  <form action="?/seedFriends" method="post">
+    <Button type="submit">Seed friends</Button>
+  </form>
 </div>

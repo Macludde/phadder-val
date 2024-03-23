@@ -2,17 +2,39 @@ import { prismaClient } from "$lib";
 import type { Actions } from "./$types";
 
 export const load = async () => {
-  const interviewers = await prismaClient.interviewer.findMany({
+  const interviewers = await prismaClient.interviewer.findMany({});
+  const interviews = await prismaClient.interview.findMany({
     include: {
-      cantInterview: true,
+      interviewers: true,
+    },
+    orderBy: {
+      startTime: "asc",
     },
   });
   return {
     interviewers,
+    interviews,
   };
 };
 
 export const actions: Actions = {
+  assignToInterviewer: async ({ request }) => {
+    const data = await request.formData();
+    const interviewerName = data.get("interviewerName") as string;
+    const interviewId = Number.parseInt(data.get("interviewId") as string);
+    await prismaClient.interview.update({
+      where: {
+        id: interviewId,
+      },
+      data: {
+        interviewers: {
+          connect: {
+            name: interviewerName,
+          },
+        },
+      },
+    });
+  },
   addCantInterview: async ({ request }) => {
     const data = await request.formData();
     const interviewerName = data.get("interviewerName") as string;

@@ -12,11 +12,13 @@
     value: string;
   }[] = [];
 
+  export let onChange: () => void | undefined;
+
   let open = false;
   export let value = "";
 
   $: selectedValue =
-    options.find((f) => f.value === value)?.label ?? "Select an option...";
+    options.find((f) => f.value === value)?.label ?? "INGET...";
 
   // We want to refocus the trigger button when the user selects
   // an item from the list so users can continue navigating the
@@ -42,7 +44,7 @@
       <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
     </Button>
   </Popover.Trigger>
-  <Popover.Content class="w-[200px] p-0">
+  <Popover.Content class="w-[200px] p-0 h-52">
     <Command.Root>
       <Command.Input placeholder="Search..." />
       <Command.Empty>Not found.</Command.Empty>
@@ -54,6 +56,7 @@
               value =
                 options.find((f) => f.label === currentValue)?.value ?? "";
               closeAndFocusTrigger(ids.trigger);
+              onChange();
             }}
           >
             <Check

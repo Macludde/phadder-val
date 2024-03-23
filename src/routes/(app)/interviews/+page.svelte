@@ -2,7 +2,6 @@
   import { enhance } from "$app/forms";
   import * as Card from "$lib/components/ui/card";
   import Button from "@/components/ui/button/button.svelte";
-  import { AppleIcon } from "lucide-svelte";
 
   export let data;
   let startTime = "2024-03-18T10:00";
@@ -135,6 +134,9 @@
                           <Card.Title>
                             {interview.startTime.toISOString().slice(11, 16)}
                           </Card.Title>
+                          <Card.Description>
+                            {interview.location}
+                          </Card.Description>
                         </Card.Header>
                         <Card.Content class="flex flex-col gap-4">
                           <ol>
@@ -142,23 +144,25 @@
                               <li class="flex flex-col">
                                 <span class="flex items-center">
                                   {applicant.name} ({applicant.year})
-                                  <form
-                                    method="post"
-                                    action="?/removePersonFromInterview"
-                                    use:enhance
-                                  >
-                                    <input
-                                      type="hidden"
-                                      name="id"
-                                      value={applicant.id}
-                                    />
-                                    <Button
-                                      class="ml-4"
-                                      size="sm"
-                                      type="submit"
-                                      variant="destructive">X</Button
+                                  {#if !applicant.interviewLocked}
+                                    <form
+                                      method="post"
+                                      action="?/removePersonFromInterview"
+                                      use:enhance
                                     >
-                                  </form>
+                                      <input
+                                        type="hidden"
+                                        name="id"
+                                        value={applicant.id}
+                                      />
+                                      <Button
+                                        class="ml-4"
+                                        size="sm"
+                                        type="submit"
+                                        variant="destructive">X</Button
+                                      >
+                                    </form>
+                                  {/if}
                                 </span>
                                 <span class="opacity-50">
                                   {applicant.ApplicantPosition.map(

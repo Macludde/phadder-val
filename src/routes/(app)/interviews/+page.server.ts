@@ -12,6 +12,9 @@ export const load = async () => {
       },
       interviewers: true,
     },
+    orderBy: {
+      startTime: "asc",
+    },
   });
   const applicantsWithoutInterview = await prismaClient.applicant.findMany({
     where: {
@@ -114,7 +117,7 @@ export const actions: Actions = {
   },
   populate: async () => {
     let done = false;
-    let startAt = undefined;
+    let startAt = new Date();
     while (!done) {
       const res = await populateOneInterview(startAt);
       if (typeof res === "boolean") {

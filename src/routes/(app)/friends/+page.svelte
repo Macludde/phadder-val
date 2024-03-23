@@ -5,7 +5,7 @@
 
   export let data;
 
-  $: applicantOptions = data.applicants.map((applicant) => ({
+  $: applicantOptions = data.allApplicants.map((applicant) => ({
     label: applicant.name,
     value: applicant.id.toString(),
   }));

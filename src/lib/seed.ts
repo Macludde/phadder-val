@@ -33,7 +33,10 @@ const missionsToEnum: Record<string, Mission> = {
   Showdown: Mission.Showdown,
   "Något nytt uppdrag": Mission.New,
 };
-const seedPerson = (prisma: PrismaClient, personRow: string) => {
+const seedPerson = async (
+  prisma: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
+  personRow: string,
+) => {
   const values = personRow.split("\t");
   const roles =
     values[5].length > 0
@@ -43,8 +46,28 @@ const seedPerson = (prisma: PrismaClient, personRow: string) => {
     values[7].length > 0
       ? values[7].split(", ").map((mission) => missionsToEnum[mission])
       : [];
-  return prisma.applicant.create({
+  console.log(values.slice(13));
+  const friend1Name = values[13] ?? "";
+  const friend2Name = values[14] ?? "";
+  const friend1 =
+    friend1Name.length > 0
+      ? await prisma.applicant.findFirst({
+          where: {
+            name: friend1Name,
+          },
+        })
+      : null;
+  const friend2 =
+    friend2Name.length > 0
+      ? await prisma.applicant.findFirst({
+          where: {
+            name: friend2Name,
+          },
+        })
+      : null;
+  return await prisma.applicant.create({
     data: {
+      hasAnsweredExtraForm: true,
       appliedAt: new Date(values[0]),
       name: values[1],
       email: values[2].toLowerCase(),
@@ -53,6 +76,20 @@ const seedPerson = (prisma: PrismaClient, personRow: string) => {
       applicantOrderReason: values[6] ? values[6] : null,
       cantInterviewReason: values[9] ? values[9] : null,
       otherInfo: values[10] ? values[10] : null,
+      friend1: friend1
+        ? {
+            connect: {
+              id: friend1.id,
+            },
+          }
+        : undefined,
+      friend2: friend2
+        ? {
+            connect: {
+              id: friend2.id,
+            },
+          }
+        : undefined,
       ApplicantPosition: roles
         ? {
             createMany: {
@@ -85,11 +122,17 @@ const seedNewInterviews = async (prisma: PrismaClient) => {
 
   const tsv = file.toString();
   const lines = tsv.split("\n");
-  for (const line of lines) {
-    await seedPerson(prisma, line);
+  try {
+    await prisma.$transaction(async (p) => {
+      for (const line of lines) {
+        await seedPerson(p, line);
+      }
+    });
+    // clear file
+    fs.writeFileSync(path.resolve(__dirname, "./data/new.tsv"), "");
+  } catch (e) {
+    throw e;
   }
-  // clear file
-  fs.writeFileSync(path.resolve(__dirname, "./data/new.tsv"), "");
 };
 
 const seedInterviewer = async (prisma: PrismaClient) => {

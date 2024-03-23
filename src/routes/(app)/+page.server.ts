@@ -1,5 +1,6 @@
 import { prismaClient } from "$lib";
 import { seed } from "$lib/seed";
+import { seedFriends } from "@/friends";
 import type { Actions } from "./$types";
 const days = [18, 19, 20, 21, 22, 23, 24];
 export const load = async () => {
@@ -73,6 +74,14 @@ export const load = async () => {
 export const actions: Actions = {
   seed: async () => {
     await seed();
+    return { status: "ok" };
+  },
+  seedFriends: async () => {
+    try {
+      await seedFriends();
+    } catch (e) {
+      console.error(e);
+    }
     return { status: "ok" };
   },
 };

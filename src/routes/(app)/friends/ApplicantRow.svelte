@@ -7,8 +7,8 @@
   export let applicant: Applicant;
   export let applicantOptions: any;
 
-  let friend1: string = applicant.friend1Id?.toString();
-  let friend2: string = applicant.friend2Id?.toString();
+  let friend1: string = applicant.friend1Id?.toString() ?? "";
+  let friend2: string = applicant.friend2Id?.toString() ?? "";
 </script>
 
 <section>

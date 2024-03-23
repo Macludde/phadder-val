@@ -3,12 +3,22 @@ import { Underline } from "lucide-svelte";
 import type { Actions } from "./$types";
 
 export const load = async () => {
+  const allApplicants = await prismaClient.applicant.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
   const applicants = await prismaClient.applicant.findMany({
+    where: {
+      hasAnsweredExtraForm: true,
+      // friend1: null,
+    },
     orderBy: {
       name: "asc",
     },
   });
   return {
+    allApplicants,
     applicants,
   };
 };

@@ -4,7 +4,10 @@ import { Mission, Position } from "@prisma/client";
 export const load = async () => {
   const fullCount = await prismaClient.applicant.count({
     where: {
-      hasSentExtraFormMail: false,
+      hasAnsweredExtraForm: false,
+      appliedAt: {
+        lt: new Date("2024-03-07 14:08:15"),
+      },
       ApplicantPosition: {
         some: {
           position: {
@@ -23,7 +26,10 @@ export const load = async () => {
   });
   const nonMission = await prismaClient.applicant.findMany({
     where: {
-      hasSentExtraFormMail: false,
+      hasAnsweredExtraForm: false,
+      appliedAt: {
+        lt: new Date("2024-03-07 14:08:15"),
+      },
       AND: [
         {
           ApplicantPosition: {
@@ -53,7 +59,10 @@ export const load = async () => {
   });
   const missionCount = await prismaClient.applicant.count({
     where: {
-      hasSentExtraFormMail: false,
+      hasAnsweredExtraForm: false,
+      appliedAt: {
+        lt: new Date("2024-03-07 14:08:15"),
+      },
       ApplicantPosition: {
         some: {
           OR: [
@@ -70,7 +79,10 @@ export const load = async () => {
   });
   const missionNonSpex = await prismaClient.applicant.findMany({
     where: {
-      hasSentExtraFormMail: false,
+      hasAnsweredExtraForm: false,
+      appliedAt: {
+        lt: new Date("2024-03-07 14:08:15"),
+      },
       ApplicantPosition: {
         some: {
           OR: [
@@ -92,7 +104,10 @@ export const load = async () => {
   });
   const missionAndSpex = await prismaClient.applicant.findMany({
     where: {
-      hasSentExtraFormMail: false,
+      hasAnsweredExtraForm: false,
+      appliedAt: {
+        lt: new Date("2024-03-07 14:08:15"),
+      },
       ApplicantPosition: {
         some: {
           OR: [
