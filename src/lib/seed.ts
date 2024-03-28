@@ -134,104 +134,91 @@ const seedNewInterviews = async (prisma: PrismaClient) => {
     throw e;
   }
 };
+const evaluationPostToPosition: Record<string, Position> = {
+  Grupp: Position.Group,
+  Uppdrag: Position.Mission,
+  Huvud: Position.Head,
+  Intisgrupp: Position.InternationalGroup,
+  Intishuvud: Position.InternationalHead,
+  Intisuppdrag: Position.InternationalMission,
+  Plugg: Position.Study,
+};
 
-const seedInterviewer = async (prisma: PrismaClient) => {
-  return;
-  await prisma.interviewer.createMany({
-    data: [
-      {
-        name: "Ludvig",
-        role: InterviewerRole.Stab,
-        electionFamiliarity: 3,
+const seedEvaluation = async (
+  prisma: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
+  evaluationRow: string,
+) => {
+  const values = evaluationRow.split("\t");
+  const name = values[0];
+  const position = values[1];
+  const score = values[2]?.trim() ? parseInt(values[2].trim()) : null;
+  const comment = values[3]?.trim() ? values[3].trim() : null;
+  const flags = values[4]?.trim() ? values[4].trim() : null;
+  const wantOtherMissions = values[5]?.trim() ? values[5].trim() : null;
+  const year = values[6]?.trim() ? parseInt(values[6].trim()) : null;
+  const programme = values[7]?.trim() ? values[7].trim() : null;
+  const applicant = await prisma.applicant.findFirst({
+    where: {
+      name: {
+        contains: name,
       },
-      {
-        name: "Moa",
-        role: InterviewerRole.Stab,
-        electionFamiliarity: 3,
+    },
+  });
+  if (!applicant) {
+    throw new Error(`Could not find applicant with name ${name}`);
+  }
+  console.log(name, position);
+  await prisma.applicant.update({
+    where: {
+      id: applicant.id,
+    },
+    data: {
+      ApplicantPosition: {
+        update: {
+          where: {
+            position_applicantId: {
+              applicantId: applicant.id,
+              position: evaluationPostToPosition[position],
+            },
+          },
+          data: {
+            score,
+            comment,
+            flags,
+            canTakeOtherMissions: wantOtherMissions,
+          },
+        },
       },
-      {
-        name: "Märta",
-        role: InterviewerRole.Stab,
-        electionFamiliarity: 3,
-      },
-      {
-        name: "Rilde",
-        role: InterviewerRole.Stab,
-        electionFamiliarity: 3,
-      },
-      {
-        name: "Loke",
-        role: InterviewerRole.Stab,
-        electionFamiliarity: 3,
-      },
-      {
-        name: "Rasmus",
-        role: InterviewerRole.Stab,
-        electionFamiliarity: 3,
-      },
-      {
-        name: "Thyra",
-        role: InterviewerRole.Opepp,
-        electionFamiliarity: 2,
-      },
-      {
-        name: "Sasha",
-        role: InterviewerRole.Opepp,
-        electionFamiliarity: 2,
-      },
-      {
-        name: "Klara",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 2,
-      },
-      {
-        name: "Gusch",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 2,
-      },
-      {
-        name: "Linn",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 1,
-      },
-      {
-        name: "Lola",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 1,
-      },
-      {
-        name: "Axel",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 1,
-      },
-      {
-        name: "Casper",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 1,
-      },
-      {
-        name: "Emil",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 3,
-      },
-      {
-        name: "Jakob",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 1,
-      },
-      {
-        name: "Wilma",
-        role: InterviewerRole.Pepp,
-        electionFamiliarity: 1,
-      },
-    ],
+      ...(programme
+        ? {
+            programme,
+          }
+        : {}),
+    },
   });
 };
 
-const seedInterviewTimes = async (prisma: PrismaClient) => {};
+const seedEvaluations = async (prisma: PrismaClient) => {
+  const file = fs.readFileSync(
+    path.resolve(__dirname, "./data/evaluations.tsv"),
+  );
+
+  const tsv = file.toString();
+  const lines = tsv.split("\n");
+  try {
+    await prisma.$transaction(async (p) => {
+      for (const line of lines) {
+        await seedEvaluation(p, line);
+      }
+    });
+  } catch (e) {
+    throw e;
+  }
+};
 
 export async function seed() {
-  await seedNewInterviews(prismaClient);
+  // await seedNewInterviews(prismaClient);
+  await seedEvaluations(prismaClient);
   // await seedInterviewer(prismaClient);
   //   await seedPeople(prismaClient);
 }
