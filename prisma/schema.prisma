@@ -46,6 +46,10 @@ model Applicant {
   friend2Id Int?
 
   hasSentInterviewMail Boolean @default(false)
+
+  programme String?
+  isGirl    Boolean?
+  group     Int?
 }
 
 model ApplicantPosition {
@@ -53,6 +57,13 @@ model ApplicantPosition {
   applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   applicantId Int
   order       Int?
+
+  score                Int?
+  canTakeOtherMissions String?
+  comment              String?
+  flags                String?
+
+  elected Boolean @default(false)
 
   @@id([position, applicantId])
 }
